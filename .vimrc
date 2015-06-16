@@ -77,6 +77,8 @@ nnoremap <leader>; ;
 nmap <silent> <leader>ev :e $MYVIMRC<CR>
 " source ~/.vimrc
 nmap <silent> <leader>sv :so $MYVIMRC<CR>
+nmap <silent> <leader>pi :PluginInstall<CR>
+nmap <silent> <leader>pc :PluginClean<CR>
 " Swap implementations of ` and ' jump to markers
 " By default, ' jumps to the marked line, ` jumps to the marked line and
 " column, so swap them
