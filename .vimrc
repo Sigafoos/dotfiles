@@ -57,7 +57,11 @@ set noswapfile " potentially bad news bears?
 set tabstop=4
 highlight CursorLine cterm=NONE ctermbg=None ctermfg=None
 highlight CursorLineNr ctermbg=23
-nnoremap <leader>p :set paste!<return>
+" This doesn't work with tmux, but if you :sp ...?
+autocmd WinEnter * setlocal cursorline
+autocmd WinLeave * setlocal nocursorline
+" not sure if I want this... but it enables bootstrap snippets in .php
+autocmd BufRead,BufNewFile *.php set filetype=html
 
 set nolist
 " stolen from jbaker
@@ -78,3 +82,4 @@ nmap <silent> <leader>sv :so $MYVIMRC<CR>
 " column, so swap them
 nnoremap ' `
 nnoremap ` '
+nnoremap <leader>p :set paste!<return>
