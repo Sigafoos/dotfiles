@@ -11,6 +11,9 @@ Plugin 'joonty/vim-phpqa.git'
 Plugin 'StanAngeloff/php.vim.git'
 Plugin 'SirVer/ultisnips'
 Plugin 'Sigafoos/vim-snippets' " my fork
+Plugin 'tomtom/tlib_vim' " for bootstrap
+Plugin 'MarcWeber/vim-addon-mw-utils' " ditto
+Plugin 'Sigafoos/bootstrap-snippets' " my fork
 
 " ** plugin settings **
 " vim-phpqa
@@ -60,8 +63,6 @@ highlight CursorLineNr ctermbg=23
 " This doesn't work with tmux, but if you :sp ...?
 autocmd WinEnter * setlocal cursorline
 autocmd WinLeave * setlocal nocursorline
-" not sure if I want this... but it enables bootstrap snippets in .php
-autocmd BufRead,BufNewFile *.php set filetype=html
 
 set nolist
 " stolen from jbaker
