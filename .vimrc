@@ -41,9 +41,14 @@ let g:UltiSnipsExpandTrigger="<tab>"
 let g:UltiSnipsJumpForwardTrigger="<c-e>"
 let g:UltiSnipsJumpBackwardTrigger="<c-z>"
 
+" any machine-only Vundle stuff to add?
+if filereadable(glob("~/.vundle.local")) 
+	source ~/.vundle.local
+endif
+
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
-filetype plugin indent on    " required
+filetype plugin on    " required
 
 " ** other settings I like **
 " ** I should probably sort this more? **
@@ -86,3 +91,8 @@ nmap <silent> <leader>pc :PluginClean<CR>
 nnoremap ' `
 nnoremap ` '
 nnoremap <leader>p :set paste!<return>
+"
+" any machine-only vimrc stuff to add?
+if filereadable(glob("~/.vimrc.local")) 
+	source ~/.vimrc.local
+endif
