@@ -14,6 +14,7 @@ Plugin 'Sigafoos/vim-snippets' " my fork
 Plugin 'tomtom/tlib_vim' " for bootstrap
 Plugin 'MarcWeber/vim-addon-mw-utils' " ditto
 Plugin 'Sigafoos/bootstrap-snippets' " my fork
+Plugin 'Sigafoos/php.vim-1' " custom syntax stuff
 
 " ** plugin settings **
 " vim-phpqa
