@@ -42,7 +42,7 @@ let g:UltiSnipsJumpForwardTrigger="<c-e>"
 let g:UltiSnipsJumpBackwardTrigger="<c-z>"
 
 " any machine-only Vundle stuff to add?
-if filereadable(glob("~/.vundle.local")) 
+if filereadable(glob("~/.vundle.local"))
 	source ~/.vundle.local
 endif
 
@@ -93,6 +93,6 @@ nnoremap ` '
 nnoremap <leader>p :set paste!<return>
 "
 " any machine-only vimrc stuff to add?
-if filereadable(glob("~/.vimrc.local")) 
+if filereadable(glob("~/.vimrc.local"))
 	source ~/.vimrc.local
 endif
