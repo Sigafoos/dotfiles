@@ -22,6 +22,10 @@ Plugin 'benmills/vimux'
 Plugin 'tpope/vim-fugitive'
 Plugin 'joonty/vdebug'
 
+" All of your Plugins must be added before the following line
+call vundle#end()            " required
+filetype plugin indent on    " required
+
 " ** plugin settings **
 " vim-phpqa
 " PHP Code Sniffer binary (default = "phpcs")
@@ -51,16 +55,21 @@ let g:UltiSnipsJumpBackwardTrigger="<c-z>"
 " airline
 let g:airline_powerline_fonts = 1
 let g:airline#extensions#whitespace#mixed_indent_algo = 1
-let g:airline_theme='badwolf'
+let g:airline_theme='murmur'
+
+" promptline
+let g:promptline_theme = 'airline'
+let g:promptline_preset = {
+	\'a' : [ promptline#slices#host() ],
+	\'b' : [ promptline#slices#cwd() ],
+	\'c' : [ promptline#slices#vcs_branch(), promptline#slices#git_status() ],
+	\'warn' : [ promptline#slices#last_exit_code() ]
+	\}
 
 " any machine-only Vundle stuff to add?
 if filereadable(glob("~/.vundle.local"))
 	source ~/.vundle.local
 endif
-
-" All of your Plugins must be added before the following line
-call vundle#end()            " required
-filetype plugin indent on    " required
 
 " ** other settings I like **
 " ** I should probably sort this more? **
