@@ -15,6 +15,12 @@ Plugin 'tomtom/tlib_vim' " for bootstrap
 Plugin 'MarcWeber/vim-addon-mw-utils' " ditto
 Plugin 'Sigafoos/bootstrap-snippets' " my fork
 Plugin 'Sigafoos/php.vim-1' " custom syntax stuff
+Plugin 'bling/vim-airline'
+Plugin 'edkolev/promptline.vim'
+Plugin 'tpope/vim-tbone'
+Plugin 'benmills/vimux'
+Plugin 'tpope/vim-fugitive'
+Plugin 'joonty/vdebug'
 
 " ** plugin settings **
 " vim-phpqa
@@ -42,6 +48,11 @@ let g:UltiSnipsExpandTrigger="<tab>"
 let g:UltiSnipsJumpForwardTrigger="<c-e>"
 let g:UltiSnipsJumpBackwardTrigger="<c-z>"
 
+" airline
+let g:airline_powerline_fonts = 1
+let g:airline#extensions#whitespace#mixed_indent_algo = 1
+let g:airline_theme='badwolf'
+
 " any machine-only Vundle stuff to add?
 if filereadable(glob("~/.vundle.local"))
 	source ~/.vundle.local
@@ -49,13 +60,11 @@ endif
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
-filetype plugin on    " required
+filetype plugin indent on    " required
 
 " ** other settings I like **
 " ** I should probably sort this more? **
 set autoindent
-set cindent
-set smartindent
 set number
 set hlsearch
 set incsearch
@@ -64,13 +73,16 @@ set clipboard=unnamed
 set cursorline
 set noswapfile " potentially bad news bears?
 set tabstop=4
+set shiftwidth=4
 highlight CursorLine cterm=NONE ctermbg=None ctermfg=None
 highlight CursorLineNr ctermbg=23
 " This doesn't work with tmux, but if you :sp ...?
 autocmd WinEnter * setlocal cursorline
 autocmd WinLeave * setlocal nocursorline
+set laststatus=2
 
 set nolist
+set list lcs=tab:\|\ 
 " stolen from jbaker
 highlight RedundantWhitespace ctermbg=darkred guibg=darkred
 match RedundantWhitespace /\s\+$/
