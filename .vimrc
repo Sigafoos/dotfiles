@@ -122,7 +122,9 @@ match RedundantWhitespace /\s\+$/
 
 " ** mappings and such **
 let mapleader=","
-nnoremap <esc> :noh<return>
+" otherwise some terminals send the esc command too early?
+" see http://stackoverflow.com/questions/11940801/mapping-esc-in-vimrc-causes-bizzare-arrow-behaviour/16027716#16027716
+autocmd TermResponse * nnoremap <esc> :noh<return>
 nnoremap ; :
 nnoremap <leader>; ;
 "edit ~/.vimrc
