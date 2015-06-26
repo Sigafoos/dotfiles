@@ -18,7 +18,6 @@ Plugin 'Sigafoos/php.vim-1' " custom syntax stuff
 Plugin 'bling/vim-airline'
 Plugin 'edkolev/promptline.vim'
 Plugin 'tpope/vim-tbone'
-Plugin 'benmills/vimux'
 Plugin 'tpope/vim-fugitive'
 Plugin 'joonty/vdebug'
 Plugin 'tpope/vim-abolish.git'
@@ -90,7 +89,7 @@ let g:EasyClipAutoFormat = 1
 let g:EasyClipShareYanks = 1
 
 " abolish
-:command S Subvert
+":command S Subvert
 
 " any machine-only Vundle stuff to add?
 if filereadable(glob("~/.vundle.local"))
