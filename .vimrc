@@ -17,7 +17,6 @@ Plugin 'Sigafoos/bootstrap-snippets' " my fork
 Plugin 'Sigafoos/php.vim-1' " custom syntax stuff
 Plugin 'bling/vim-airline'
 Plugin 'edkolev/promptline.vim'
-Plugin 'tpope/vim-tbone'
 Plugin 'tpope/vim-fugitive'
 Plugin 'joonty/vdebug'
 Plugin 'tpope/vim-abolish.git'
