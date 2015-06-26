@@ -22,6 +22,12 @@ Plugin 'benmills/vimux'
 Plugin 'tpope/vim-fugitive'
 Plugin 'joonty/vdebug'
 Plugin 'tpope/vim-abolish.git'
+Plugin 'tpope/vim-repeat'
+Plugin 'svermeulen/vim-easyclip'
+
+" All of your Plugins must be added before the following line
+call vundle#end()            " required
+filetype plugin indent on    " required
 
 " ** plugin settings **
 " vim-phpqa
@@ -52,16 +58,44 @@ let g:UltiSnipsJumpBackwardTrigger="<c-z>"
 " airline
 let g:airline_powerline_fonts = 1
 let g:airline#extensions#whitespace#mixed_indent_algo = 1
-let g:airline_theme='badwolf'
+let g:airline_theme='murmur'
+
+" promptline
+let g:promptline_theme = 'airline'
+let g:promptline_preset = {
+	\'a' : [ promptline#slices#host() ],
+	\'b' : [ promptline#slices#cwd() ],
+	\'x' : [ promptline#slices#vcs_branch(), promptline#slices#git_status() ],
+	\'warn' : [ promptline#slices#last_exit_code() ]
+	\}
+
+" vdebug
+let g:vdebug_options = {'port' : '9001'}
+let g:vdebug_keymap = {
+	\    'run' : '<leader>5',
+	\    'run_to_cursor' : '<leader>1',
+	\    'step_over' : '<leader>2',
+	\    'step_into' : '<leader>3',
+	\    'step_out' : '<leader>4',
+	\    'close' : '<leader>6',
+	\    'detach' : '<leader>7',
+	\    'set_breakpoint' : '<leader>10',
+	\    'get_context' : '<leader>11',
+	\    'eval_under_cursor' : '<leader>12',
+	\    'eval_visual' : '<Leader>e',
+	\}
+
+" easyclip
+let g:EasyClipAutoFormat = 1
+let g:EasyClipShareYanks = 1
+
+" abolish
+:command S Subvert
 
 " any machine-only Vundle stuff to add?
 if filereadable(glob("~/.vundle.local"))
 	source ~/.vundle.local
 endif
-
-" All of your Plugins must be added before the following line
-call vundle#end()            " required
-filetype plugin indent on    " required
 
 " ** other settings I like **
 " ** I should probably sort this more? **
