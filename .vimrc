@@ -64,7 +64,11 @@ let g:promptline_preset = {
 	\'a' : [ promptline#slices#host() ],
 	\'b' : [ promptline#slices#cwd() ],
 	\'x' : [ promptline#slices#vcs_branch(), promptline#slices#git_status() ],
-	\'warn' : [ promptline#slices#last_exit_code() ]
+	\'y' : [ '%T' ],
+	\'warn' : [ promptline#slices#last_exit_code() ],
+	\'options' : {
+		\'right_only_sections' : [ 'y' ],
+		\}
 	\}
 
 " vdebug
