@@ -23,6 +23,11 @@ Plugin 'tpope/vim-abolish.git'
 Plugin 'tpope/vim-repeat'
 Plugin 'svermeulen/vim-easyclip'
 
+" any machine-only Vundle stuff to add?
+if filereadable(glob("~/.vundle.local"))
+	source ~/.vundle.local
+endif
+
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
 filetype plugin indent on    " required
@@ -91,14 +96,6 @@ let g:vdebug_keymap = {
 let g:EasyClipAutoFormat = 1
 let g:EasyClipShareYanks = 1
 
-" abolish
-":command S Subvert
-
-" any machine-only Vundle stuff to add?
-if filereadable(glob("~/.vundle.local"))
-	source ~/.vundle.local
-endif
-
 " ** other settings I like **
 " ** I should probably sort this more? **
 set autoindent
@@ -143,7 +140,7 @@ nmap <silent> <leader>pc :PluginClean<CR>
 nnoremap ' `
 nnoremap ` '
 nnoremap <leader>p :set paste!<return>
-"
+
 " any machine-only vimrc stuff to add?
 if filereadable(glob("~/.vimrc.local"))
 	source ~/.vimrc.local
