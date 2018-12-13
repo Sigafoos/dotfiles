@@ -24,6 +24,7 @@ alias gd='git diff'
 alias gb='git branch'
 alias gco='git checkout'
 alias d='date --rfc-3339 date -d'
+alias t='todo -t'
 if [ -x $(command -v nvim) ]; then
 	alias vi='nvim'
 	alias vim='nvim'
@@ -35,4 +36,5 @@ bind 'set editing-mode vi'
 export EDITOR=vim
 alias ci=vi
 
-export PATH=$PATH:$HOME/bin
+export GOPATH=$HOME/go
+export PATH=$PATH:$HOME/bin:$GOPATH/bin
