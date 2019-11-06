@@ -3,6 +3,8 @@ syntax on
 set nocompatible              " be iMproved, required
 filetype off                  " required
 
+set nomodeline
+
 " ** pluggins **
 set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
@@ -13,6 +15,7 @@ Plugin 'tpope/vim-fugitive'
 Plugin 'tpope/vim-abolish.git'
 Plugin 'tpope/vim-repeat'
 Plugin 'svermeulen/vim-easyclip'
+Plugin 'plasticboy/vim-markdown'
 
 " any machine-only Vundle stuff to add?
 if filereadable(glob("~/.vundle.local"))
@@ -32,6 +35,8 @@ let g:airline_theme='bubblegum'
 " easyclip
 let g:EasyClipAutoFormat = 1
 let g:EasyClipShareYanks = 1
+
+let g:vim_markdown_folding_disabled = 1
 
 " ** other settings I like **
 " ** I should probably sort this more? **
