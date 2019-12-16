@@ -1,0 +1,14 @@
+# This is Git's per-user configuration file.
+[user]
+# Please adapt and uncomment the following lines:
+	name = Dan Conley
+	email = dconley@protonmail.com
+[alias]
+	co = checkout
+	c = commit
+	a = add
+	st = status
+	p = push
+	l = log
+	d = diff
+	b = branch

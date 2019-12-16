@@ -16,6 +16,7 @@ Plugin 'tpope/vim-abolish.git'
 Plugin 'tpope/vim-repeat'
 Plugin 'svermeulen/vim-easyclip'
 Plugin 'plasticboy/vim-markdown'
+Plugin 'w0rp/ale'
 
 " any machine-only Vundle stuff to add?
 if filereadable(glob("~/.vundle.local"))
