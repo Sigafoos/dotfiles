@@ -83,6 +83,7 @@ nmap <silent> <leader>pc :PluginClean<CR>
 nnoremap ' `
 nnoremap ` '
 nnoremap <leader>p :set paste!<return>
+autocmd BufNewFile,BufRead *.vue set syntax=html
 
 " any machine-only vimrc stuff to add?
 if filereadable(glob("~/.vimrc.local"))
