@@ -90,6 +90,7 @@ nmap <silent> <leader>pc :PluginClean<CR>
 nnoremap ' `
 nnoremap ` '
 nnoremap <leader>p :set paste!<return>
+autocmd BufNewFile,BufRead *.vue set syntax=html
 
 augroup config_autocmd
     autocmd!

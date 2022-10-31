@@ -1,6 +1,4 @@
-# This is Git's per-user configuration file.
 [user]
-# Please adapt and uncomment the following lines:
 	name = Dan Conley
 	email = dconley@protonmail.com
 [alias]
@@ -12,3 +10,5 @@
 	l = log
 	d = diff
 	b = branch
+[url "git@github.com:"]
+	insteadOf = https://github.com/
