@@ -16,7 +16,9 @@ Plugin 'tpope/vim-abolish.git'
 Plugin 'tpope/vim-repeat'
 Plugin 'svermeulen/vim-easyclip'
 Plugin 'plasticboy/vim-markdown'
-Plugin 'w0rp/ale'
+Plugin 'dense-analysis/ale'
+Plugin 'editorconfig/editorconfig-vim'
+Plugin 'elzr/vim-json'
 
 " any machine-only Vundle stuff to add?
 if filereadable(glob("~/.vundle.local"))
@@ -39,6 +41,10 @@ let g:EasyClipShareYanks = 1
 
 let g:vim_markdown_folding_disabled = 1
 
+let g:EditorConfig_exclude_patterns = ['fugitive://.*']
+
+let g:vim_json_syntax_conceal = 0
+
 " ** other settings I like **
 " ** I should probably sort this more? **
 set autoindent
@@ -57,6 +63,7 @@ highlight CursorLineNr ctermbg=23
 autocmd WinEnter * setlocal cursorline
 autocmd WinLeave * setlocal nocursorline
 set laststatus=2
+set backspace=indent,start " intentionally not eol
 
 set nolist
 set list lcs=tab:\|\ 
@@ -83,6 +90,12 @@ nmap <silent> <leader>pc :PluginClean<CR>
 nnoremap ' `
 nnoremap ` '
 nnoremap <leader>p :set paste!<return>
+
+augroup config_autocmd
+    autocmd!
+    autocmd FileType json set shiftwidth=2
+    autocmd FileType yaml set shiftwidth=2
+augroup END
 
 " any machine-only vimrc stuff to add?
 if filereadable(glob("~/.vimrc.local"))
