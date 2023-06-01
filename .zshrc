@@ -133,21 +133,27 @@ alias g='git'
 alias d='date --rfc-3339 date -d'
 alias t='todo -t'
 alias jqcsv='jq -r '"'(map(keys) | add | unique) as "'$cols | map(. as $row | $cols | map($row[.])) as $rows | $cols, $rows[] | @csv'"'"
+alias acvpw='bw get password 122a6ffe-0f98-4176-aeb0-ab2700097746'
 
 #bind 'set show-all-if-ambiguous on'
 #bind 'set completion-ignore-case on'
 #bind 'set editing-mode vi'
 export EDITOR=vim
 alias ci=vi
+alias vi=nvim
+alias vim=nvim
 
 export GOPATH=$HOME/go
-export PATH=$PATH:$HOME/bin:$GOPATH/bin:$HOME/node_modules/.bin
+export PATH=$PATH:$HOME/bin:$GOPATH/bin:$HOME/node_modules/.bin:/opt/homebrew/Cellar:$HOME/.dotnet/tools
 
 zstyle ':completion:*:*:docker:*' option-stacking yes
 zstyle ':completion:*:*:docker-*:*' option-stacking yes
+eval "$(bw completion --shell zsh); compdef _bw bw;"
 
 fpath=(~/.zsh/completion $fpath)
 autoload -Uz compinit && compinit -i
 # Recursively traverse directories when TAB-completing files.
 zstyle ':z4h:fzf-complete' recurse-dirs yes
 zstyle ':z4h:fzf-complete' fzf-bindings tab:repeat
+
+GITSTATUS_LOG_LEVEL=DEBUG

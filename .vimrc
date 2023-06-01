@@ -102,3 +102,6 @@ augroup END
 if filereadable(glob("~/.vimrc.local"))
 	source ~/.vimrc.local
 endif
+
+" if I wanted to use a mouse I would use an IDE
+set mouse=
