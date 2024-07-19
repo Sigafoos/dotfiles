@@ -115,7 +115,9 @@ alias clear=z4h-clear-screen-soft-bottom
 export KEYTIMEOUT=1
 
 # ha legacy
-source $HOME/.bashrc.local
+if [ -f $HOME/.bashrc.local ]; then
+	source $HOME/.bashrc.local
+fi
 
 # work with yubikey, if it's set up
 export GPG_TTY=$(tty)
@@ -148,7 +150,7 @@ export PATH=$PATH:$HOME/bin:$GOPATH/bin:$HOME/node_modules/.bin:/opt/homebrew/Ce
 
 zstyle ':completion:*:*:docker:*' option-stacking yes
 zstyle ':completion:*:*:docker-*:*' option-stacking yes
-eval "$(bw completion --shell zsh); compdef _bw bw;"
+type bw >/dev/null 2>&1 && eval "$(bw completion --shell zsh); compdef _bw bw;"
 
 fpath=(~/.zsh/completion $fpath)
 autoload -Uz compinit && compinit -i
