@@ -92,6 +92,10 @@ nnoremap ` '
 nnoremap <leader>p :set paste!<return>
 autocmd BufNewFile,BufRead *.vue set syntax=html
 
+" go to next column up/down with non whitespace character in this column
+nnoremap <silent> <leader>j :<C-u>call search('\%' . virtcol('.') . 'v\S', 'W')<CR>
+nnoremap <silent> <leader>k :<C-u>call search('\%' . virtcol('.') . 'v\S', 'bW')<CR>
+
 augroup config_autocmd
     autocmd!
     autocmd FileType json set shiftwidth=2

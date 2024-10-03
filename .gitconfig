@@ -10,5 +10,9 @@
 	l = log
 	d = diff
 	b = branch
+	sw = switch
+	r = restore
 [url "git@github.com:"]
 	insteadOf = https://github.com/
+[pull]
+	rebase = false
