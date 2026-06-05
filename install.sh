@@ -23,6 +23,14 @@ if [ $OSTYPE == "lbrbinux-gnu" ]; then
 	sudo apt install -y ack-grep
 	sudo apt install -y fd-find
 	sudo apt install -y neovim
+elif [[ $OSTYPE == darwin* ]]; then
+	if [[ ! -x $(command -v brew) ]]; then
+		echo "installing Homebrew..."
+		/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+	else
+		echo "found Homebrew"
+	fi
+	brew install tmux ack-grep fd-find neovim
 else
 	echo "can't handle OSTYPE $OSTYPE"
 fi

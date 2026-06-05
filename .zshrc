@@ -43,6 +43,7 @@ autoload -Uz compinit && compinit -i
 setopt glob_dots          # no special treatment for leading-dot file names
 setopt no_auto_menu        # require an extra TAB press to open the completion menu
 setopt auto_cd             # `foo/` with no command cds into it
+setopt interactive_comments # allow # comments in interactive shells (pasting)
 unsetopt beep              # no terminal bell on errors
 export KEYTIMEOUT=1        # reduce lag when changing vi modes / multi-key binds
 
@@ -62,9 +63,9 @@ setopt share_history          # share history across concurrent sessions
 # ─────────────────────────────────────────────────────────────────────────────
 # fzf-tab: let it own the completion menu.
 zstyle ':completion:*' menu no
-# Use `/` to keep descending into directories without leaving the fzf menu
+# Use `<tab>` to keep descending into directories without leaving the fzf menu
 # (replaces z4h's `tab:repeat` for fzf-complete / cd-down).
-zstyle ':fzf-tab:*' continuous-trigger '/'
+zstyle ':fzf-tab:*' continuous-trigger 'tab'
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -A --color=always -- ${~realpath} 2>/dev/null || ls -A -- ${~realpath}'
 
 # docker option stacking (from prior config)
@@ -101,8 +102,19 @@ _dirhist_record() {
 }
 add-zsh-hook chpwd _dirhist_record
 
+# Re-run precmd hooks, then redraw. Needed because we cd from inside a widget:
+# `zle reset-prompt` only re-renders the prompt powerlevel10k already built in
+# its last precmd, so the directory segment would otherwise stay stale until
+# the next command. Running precmd_functions makes p10k recompute it.
+_dirhist_redraw() {
+  local f
+  for f in $precmd_functions; do (( $+functions[$f] )) && $f; done
+  zle reset-prompt
+  zle -R
+}
+
 _cd-up() {
-  builtin cd .. 2>/dev/null && { zle reset-prompt; zle -R }
+  builtin cd .. 2>/dev/null && _dirhist_redraw
 }
 _cd-back() {
   (( _dirhist_idx > 1 )) || return
@@ -110,7 +122,7 @@ _cd-back() {
   (( _dirhist_idx-- ))
   builtin cd -- "${_dirhist[_dirhist_idx]}" 2>/dev/null
   _dirhist_nav=0
-  zle reset-prompt; zle -R
+  _dirhist_redraw
 }
 _cd-forward() {
   (( _dirhist_idx < $#_dirhist )) || return
@@ -118,12 +130,12 @@ _cd-forward() {
   (( _dirhist_idx++ ))
   builtin cd -- "${_dirhist[_dirhist_idx]}" 2>/dev/null
   _dirhist_nav=0
-  zle reset-prompt; zle -R
+  _dirhist_redraw
 }
 _cd-down() {
   local finder dir
   if (( $+commands[fd] )); then
-    finder='fd --type d --hidden --exclude .git --strip-cwd-prefix'
+    finder='fd --type d -d 1 --hidden --exclude .git --strip-cwd-prefix'
   else
     finder="find . -mindepth 1 -type d -not -path '*/.git/*' -printf '%P\n'"
   fi
@@ -131,7 +143,7 @@ _cd-down() {
         --preview 'ls -A --color=always -- {} 2>/dev/null || ls -A -- {}') || return
   [[ -n $dir ]] || return
   builtin cd -- "$dir" 2>/dev/null
-  zle reset-prompt; zle -R
+  _dirhist_redraw
 }
 zle -N _cd-up
 zle -N _cd-down
@@ -169,7 +181,7 @@ path=(~/bin $path)
 export GPG_TTY=$TTY
 export EDITOR=vim
 export GOPATH=$HOME/go
-export PATH=$PATH:$HOME/bin:$GOPATH/bin:$HOME/node_modules/.bin:/opt/homebrew/Cellar:$HOME/.dotnet/tools
+export PATH=$PATH:$HOME/bin:$GOPATH/bin:$HOME/node_modules/.bin:/opt/homebrew/Cellar:$HOME/.dotnet/tools:/opt/homebrew/bin
 
 # Source additional local files if they exist.
 [[ -r ~/.env.zsh ]] && source ~/.env.zsh
