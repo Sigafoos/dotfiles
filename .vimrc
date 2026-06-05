@@ -91,6 +91,7 @@ nnoremap ' `
 nnoremap ` '
 nnoremap <leader>p :set paste!<return>
 autocmd BufNewFile,BufRead *.vue set syntax=html
+autocmd BufNewFile,BufRead Jenkinsfile* set syntax=groovy
 
 " go to next column up/down with non whitespace character in this column
 nnoremap <silent> <leader>j :<C-u>call search('\%' . virtcol('.') . 'v\S', 'W')<CR>
@@ -98,7 +99,7 @@ nnoremap <silent> <leader>k :<C-u>call search('\%' . virtcol('.') . 'v\S', 'bW')
 
 augroup config_autocmd
     autocmd!
-    autocmd FileType json set shiftwidth=2
+    autocmd FileType json set shiftwidth=4 tabstop=4 expandtab
     autocmd FileType yaml set shiftwidth=2
 augroup END
 

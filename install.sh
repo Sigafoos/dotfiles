@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
-#echo "installing zsh4humans..."
-#
-#if command -v curl >/dev/null 2>&1; then
-#	sh -c "$(curl -fsSL https://raw.githubusercontent.com/romkatv/zsh4humans/v5/install)"
-#else
-#	sh -c "$(wget -O- https://raw.githubusercontent.com/romkatv/zsh4humans/v5/install)"
-#fi
+echo "installing antidote (zsh plugin manager)..."
+if [ ! -e "$HOME/.antidote/antidote.zsh" ]; then
+	git clone --depth=1 https://github.com/mattmc3/antidote.git "$HOME/.antidote"
+fi
+# Plugins themselves are cloned by antidote on first shell launch, driven by
+# ~/.zsh_plugins.txt and compiled to ~/.zsh_plugins.zsh.
 
-for file in .zshrc .gitconfig .tmux.conf .vimrc; do
+for file in .zshenv .zshrc .zsh_plugins.txt .p10k.zsh .gitconfig .tmux.conf .vimrc; do
 	echo "symlinking $file..."
 	rm $HOME/$file > /dev/null 2>&1
 	ln -s $HOME/dotfiles/$file $HOME/$file

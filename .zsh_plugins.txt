@@ -1,0 +1,22 @@
+# Antidote plugin bundle. Order matters:
+#   - completions onto fpath BEFORE compinit
+#   - fzf-tab AFTER compinit but BEFORE widget-wrapping plugins
+#   - syntax-highlighting near the end, history-substring-search after it
+#
+# powerlevel10k prompt (configured via ~/.p10k.zsh)
+romkatv/powerlevel10k
+
+# extra completion definitions (fpath only; compinit picks them up)
+zsh-users/zsh-completions kind:fpath path:src
+
+# Tab -> fzf completion menu
+Aloxaf/fzf-tab
+
+# inline autosuggestions from history
+zsh-users/zsh-autosuggestions
+
+# command-line syntax highlighting (keep near the end)
+zsh-users/zsh-syntax-highlighting
+
+# up/down history search filtered by what's typed (load after syntax-highlighting)
+zsh-users/zsh-history-substring-search

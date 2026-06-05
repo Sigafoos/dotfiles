@@ -1,123 +1,201 @@
-# Personal Zsh configuration file. It is strongly recommended to keep all
-# shell customization and configuration (including exported environment
-# variables such as PATH) in this file or in files sourced from it.
-#
-# Documentation: https://github.com/romkatv/zsh4humans/blob/v5/README.md.
+# Personal Zsh configuration — plain zsh + antidote (migrated off zsh4humans).
 
-# Periodic auto-update on Zsh startup: 'ask' or 'no'.
-# You can manually run `z4h update` to update everything.
-zstyle ':z4h:' auto-update      'ask'
-# Ask whether to auto-update this often; has no effect if auto-update is 'no'.
-zstyle ':z4h:' auto-update-days '28'
+# ─────────────────────────────────────────────────────────────────────────────
+# Powerlevel10k instant prompt. Keep near the top; nothing above it should
+# produce console output (otherwise instant prompt will warn).
+# ─────────────────────────────────────────────────────────────────────────────
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
 
-# Keyboard type: 'mac' or 'pc'.
-zstyle ':z4h:bindkey' keyboard  'mac'
+# ─────────────────────────────────────────────────────────────────────────────
+# Completion fpath additions — must come BEFORE compinit runs.
+# ─────────────────────────────────────────────────────────────────────────────
+fpath=(~/.zsh/completion $HOME/prepos/zsh-completions/src $fpath)
 
-# Start tmux if not already in tmux.
-zstyle ':z4h:' start-tmux       command tmux -u new -A -D -t z4h
+# ─────────────────────────────────────────────────────────────────────────────
+# Antidote plugin manager. Auto-clones on first run. Uses static bundling:
+# the plugin list (~/.zsh_plugins.txt) is compiled to ~/.zsh_plugins.zsh once,
+# and only recompiled when the list changes — so normal startups just source a
+# plain file. Bundle: powerlevel10k, fzf-tab, autosuggestions, syntax
+# highlighting, history-substring-search, zsh-completions.
+# ─────────────────────────────────────────────────────────────────────────────
+ANTIDOTE_DIR=${ZDOTDIR:-$HOME}/.antidote
+if [[ ! -e $ANTIDOTE_DIR/antidote.zsh ]]; then
+  git clone --depth=1 https://github.com/mattmc3/antidote.git $ANTIDOTE_DIR
+fi
+zsh_plugins=${ZDOTDIR:-$HOME}/.zsh_plugins
+if [[ ! ${zsh_plugins}.zsh -nt ${zsh_plugins}.txt ]]; then
+  source $ANTIDOTE_DIR/antidote.zsh
+  antidote bundle <${zsh_plugins}.txt >|${zsh_plugins}.zsh
+fi
+source ${zsh_plugins}.zsh
 
-# Mark up shell's output with semantic information.
-zstyle ':z4h:' term-shell-integration 'yes'
+# Initialize the completion system (after plugin fpaths are registered).
+autoload -Uz compinit && compinit -i
 
-# Right-arrow key accepts one character ('partial-accept') from
-# command autosuggestions or the whole thing ('accept')?
-zstyle ':z4h:autosuggestions' forward-char 'accept'
+# Load powerlevel10k prompt configuration.
+[[ -r ~/.p10k.zsh ]] && source ~/.p10k.zsh
 
-# Enable direnv to automatically source .envrc files.
-zstyle ':z4h:direnv'         enable 'yes'
-# Show "loading" and "unloading" notifications from direnv.
-zstyle ':z4h:direnv:success' notify 'yes'
+# ─────────────────────────────────────────────────────────────────────────────
+# Shell options
+# ─────────────────────────────────────────────────────────────────────────────
+setopt glob_dots          # no special treatment for leading-dot file names
+setopt no_auto_menu        # require an extra TAB press to open the completion menu
+setopt auto_cd             # `foo/` with no command cds into it
+unsetopt beep              # no terminal bell on errors
+export KEYTIMEOUT=1        # reduce lag when changing vi modes / multi-key binds
 
-# Enable ('yes') or disable ('no') automatic teleportation of z4h over
-# SSH when connecting to these hosts.
-zstyle ':z4h:ssh:example-hostname1'   enable 'yes'
-zstyle ':z4h:ssh:*.example-hostname2' enable 'no'
-# The default value if none of the overrides above match the hostname.
-zstyle ':z4h:ssh:*'                   enable 'no'
+# History (z4h used to configure this; set it explicitly now).
+HISTFILE=$HOME/.zsh_history
+HISTSIZE=100000
+SAVEHIST=100000
+setopt extended_history       # record timestamps
+setopt hist_expire_dups_first # trim duplicates first when HISTSIZE is exceeded
+setopt hist_ignore_dups       # don't record an entry identical to the previous one
+setopt hist_ignore_space      # don't record commands starting with a space
+setopt hist_verify            # show, don't immediately run, history expansion
+setopt share_history          # share history across concurrent sessions
 
-# Send these files over to the remote host when connecting over SSH to the
-# enabled hosts.
-zstyle ':z4h:ssh:*' send-extra-files '~/.nanorc' '~/.env.zsh'
+# ─────────────────────────────────────────────────────────────────────────────
+# Completion / plugin styles
+# ─────────────────────────────────────────────────────────────────────────────
+# fzf-tab: let it own the completion menu.
+zstyle ':completion:*' menu no
+# Use `/` to keep descending into directories without leaving the fzf menu
+# (replaces z4h's `tab:repeat` for fzf-complete / cd-down).
+zstyle ':fzf-tab:*' continuous-trigger '/'
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -A --color=always -- ${~realpath} 2>/dev/null || ls -A -- ${~realpath}'
 
-# Clone additional Git repositories from GitHub.
-#
-# This doesn't do anything apart from cloning the repository and keeping it
-# up-to-date. Cloned files can be used after `z4h init`. This is just an
-# example. If you don't plan to use Oh My Zsh, delete this line.
-#z4h install ohmyzsh/ohmyzsh || return
+# docker option stacking (from prior config)
+zstyle ':completion:*:*:docker:*' option-stacking yes
+zstyle ':completion:*:*:docker-*:*' option-stacking yes
 
-# Install or update core components (fzf, zsh-autosuggestions, etc.) and
-# initialize Zsh. After this point console I/O is unavailable until Zsh
-# is fully initialized. Everything that requires user interaction or can
-# perform network I/O must be done above. Everything else is best done below.
-z4h init || return
+# zsh-autosuggestions: Right-arrow accepts the whole suggestion (z4h had
+# forward-char 'accept'; forward-char is an accept widget by default).
 
-# vim 4 life
-#bindkey -v
-# but I still want history search
-#source $HOME/.cache/zsh4humans/v5/fzf/shell/completion.zsh
-#bindkey '^R' history-incremental-pattern-search-backward
+# history-substring-search: bind Up/Down to filtered history search.
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
 
-# Extend PATH.
-path=(~/bin $path)
+# ─────────────────────────────────────────────────────────────────────────────
+# Directory navigation widgets (replaces z4h-cd-up/down/back/forward).
+#   Shift+Up    → cd ..
+#   Shift+Down  → fzf-pick a descendant directory
+#   Shift+Left  → back  in directory history (browser-style)
+#   Shift+Right → forward in directory history
+# ─────────────────────────────────────────────────────────────────────────────
+autoload -Uz add-zsh-hook
 
-# Export environment variables.
-export GPG_TTY=$TTY
+typeset -ga _dirhist=("$PWD")   # visited directories
+typeset -gi _dirhist_idx=1      # 1-based cursor into _dirhist
+typeset -gi _dirhist_nav=0      # set while we move the cursor ourselves
 
-# Source additional local files if they exist.
-z4h source ~/.env.zsh
+# Record every cd that isn't one of our own back/forward jumps.
+_dirhist_record() {
+  (( _dirhist_nav )) && return
+  [[ "${_dirhist[_dirhist_idx]}" == "$PWD" ]] && return
+  _dirhist=("${_dirhist[@]:0:$_dirhist_idx}")   # drop any forward entries
+  _dirhist+=("$PWD")
+  _dirhist_idx=$#_dirhist
+}
+add-zsh-hook chpwd _dirhist_record
 
-# Use additional Git repositories pulled in with `z4h install`.
-#
-# This is just an example that you should delete. It does nothing useful.
-#z4h source ohmyzsh/ohmyzsh/lib/diagnostics.zsh  # source an individual file
-#z4h load   ohmyzsh/ohmyzsh/plugins/emoji-clock  # load a plugin
+_cd-up() {
+  builtin cd .. 2>/dev/null && { zle reset-prompt; zle -R }
+}
+_cd-back() {
+  (( _dirhist_idx > 1 )) || return
+  _dirhist_nav=1
+  (( _dirhist_idx-- ))
+  builtin cd -- "${_dirhist[_dirhist_idx]}" 2>/dev/null
+  _dirhist_nav=0
+  zle reset-prompt; zle -R
+}
+_cd-forward() {
+  (( _dirhist_idx < $#_dirhist )) || return
+  _dirhist_nav=1
+  (( _dirhist_idx++ ))
+  builtin cd -- "${_dirhist[_dirhist_idx]}" 2>/dev/null
+  _dirhist_nav=0
+  zle reset-prompt; zle -R
+}
+_cd-down() {
+  local finder dir
+  if (( $+commands[fd] )); then
+    finder='fd --type d --hidden --exclude .git --strip-cwd-prefix'
+  else
+    finder="find . -mindepth 1 -type d -not -path '*/.git/*' -printf '%P\n'"
+  fi
+  dir=$(eval $finder 2>/dev/null | fzf --height=40% --reverse --prompt='cd> ' \
+        --preview 'ls -A --color=always -- {} 2>/dev/null || ls -A -- {}') || return
+  [[ -n $dir ]] || return
+  builtin cd -- "$dir" 2>/dev/null
+  zle reset-prompt; zle -R
+}
+zle -N _cd-up
+zle -N _cd-down
+zle -N _cd-back
+zle -N _cd-forward
 
-# Define key bindings.
-z4h bindkey undo Ctrl+/   Shift+Tab  # undo the last command line change
-z4h bindkey redo Option+/            # redo the last undone command line change
+# Shift+Arrow escape sequences (xterm/iTerm2/WezTerm CSI 1;2 <letter>).
+bindkey '^[[1;2A' _cd-up       # Shift+Up
+bindkey '^[[1;2B' _cd-down     # Shift+Down
+bindkey '^[[1;2D' _cd-back     # Shift+Left
+bindkey '^[[1;2C' _cd-forward  # Shift+Right
 
-z4h bindkey z4h-cd-back    Shift+Left   # cd into the previous directory
-z4h bindkey z4h-cd-forward Shift+Right  # cd into the next directory
-z4h bindkey z4h-cd-up      Shift+Up     # cd into the parent directory
-z4h bindkey z4h-cd-down    Shift+Down   # cd into a child directory
+# Undo / redo (z4h bound these to Ctrl+/ and Option+/).
+bindkey '^_' undo
+bindkey '^[/' redo
 
-zstyle ':z4h:fzf-dir-history' fzf-bindings tab:repeat
-zstyle ':z4h:cd-down'         fzf-bindings tab:repeat
-
-# Autoload functions.
+# ─────────────────────────────────────────────────────────────────────────────
+# Autoloaded functions / completions
+# ─────────────────────────────────────────────────────────────────────────────
 autoload -Uz zmv
 
-# Define functions and completions.
+# mkdir + cd in one step.
 function md() { [[ $# == 1 ]] && mkdir -p -- "$1" && cd -- "$1" }
 compdef _directories md
 
-# Define named directories: ~w <=> Windows home directory on WSL.
-[[ -z $z4h_win_home ]] || hash -d w=$z4h_win_home
+# ─────────────────────────────────────────────────────────────────────────────
+# direnv (z4h had this enabled). Hook in if installed.
+# ─────────────────────────────────────────────────────────────────────────────
+(( $+commands[direnv] )) && emulate zsh -c "$(direnv hook zsh)"
 
-# Define aliases.
+# ─────────────────────────────────────────────────────────────────────────────
+# PATH / environment
+# ─────────────────────────────────────────────────────────────────────────────
+path=(~/bin $path)
+export GPG_TTY=$TTY
+export EDITOR=vim
+export GOPATH=$HOME/go
+export PATH=$PATH:$HOME/bin:$GOPATH/bin:$HOME/node_modules/.bin:/opt/homebrew/Cellar:$HOME/.dotnet/tools
+
+# Source additional local files if they exist.
+[[ -r ~/.env.zsh ]] && source ~/.env.zsh
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Aliases
+# ─────────────────────────────────────────────────────────────────────────────
 alias tree='tree -a -I .git'
-
-# Add flags to existing aliases.
 alias ls="${aliases[ls]:-ls} -A"
+alias ll='ls -l'
+alias lf='ls -AF'
+alias g='git'
+alias d='date --rfc-3339 date -d'
+alias t='todo -t'
+alias jqcsv='jq -r '"'(map(keys) | add | unique) as "'$cols | map(. as $row | $cols | map($row[.])) as $rows | $cols, $rows[] | @csv'"'"
+alias acvpw='bw get password 122a6ffe-0f98-4176-aeb0-ab2700097746'
+alias acvuatpw='bw get password 081b957a-3b47-45d3-b8d3-ab4d00e70d11'
+alias ci=vi
+alias vi=nvim
+alias vim=nvim
 
-# Set shell options: http://zsh.sourceforge.net/Doc/Release/Options.html.
-setopt glob_dots     # no special treatment for file names with a leading dot
-setopt no_auto_menu  # require an extra TAB press to open the completion menu
-
-# DAN
-#
-# Move prompt to the bottom when zsh starts and on Ctrl+L.
-zstyle ':z4h:' prompt-at-bottom 'yes'
-alias clear=z4h-clear-screen-soft-bottom
-
-# reduce lag when changing modes
-export KEYTIMEOUT=1
-
+# ─────────────────────────────────────────────────────────────────────────────
+# Legacy / machine-specific
+# ─────────────────────────────────────────────────────────────────────────────
 # ha legacy
-if [ -f $HOME/.bashrc.local ]; then
-	source $HOME/.bashrc.local
-fi
+[[ -f $HOME/.bashrc.local ]] && source $HOME/.bashrc.local
 
 # work with yubikey, if it's set up
 export GPG_TTY=$(tty)
@@ -128,34 +206,23 @@ if [ -f "${HOME}/.gpg-agent-info" ]; then
 	export SSH_AGENT_PID
 fi
 
-# User specific aliases and functions
-alias ll='ls -l'
-alias lf='ls -AF'
-alias g='git'
-alias d='date --rfc-3339 date -d'
-alias t='todo -t'
-alias jqcsv='jq -r '"'(map(keys) | add | unique) as "'$cols | map(. as $row | $cols | map($row[.])) as $rows | $cols, $rows[] | @csv'"'"
-alias acvpw='bw get password 122a6ffe-0f98-4176-aeb0-ab2700097746'
+# perl5 local::lib
+PATH="/Users/dconley/perl5/bin${PATH:+:${PATH}}:/Applications/WezTerm.app/Contents/MacOS"; export PATH;
+PERL5LIB="/Users/dconley/perl5/lib/perl5${PERL5LIB:+:${PERL5LIB}}"; export PERL5LIB;
+PERL_LOCAL_LIB_ROOT="/Users/dconley/perl5${PERL_LOCAL_LIB_ROOT:+:${PERL_LOCAL_LIB_ROOT}}"; export PERL_LOCAL_LIB_ROOT;
+PERL_MB_OPT="--install_base \"/Users/dconley/perl5\""; export PERL_MB_OPT;
+PERL_MM_OPT="INSTALL_BASE=/Users/dconley/perl5"; export PERL_MM_OPT;
 
-#bind 'set show-all-if-ambiguous on'
-#bind 'set completion-ignore-case on'
-#bind 'set editing-mode vi'
-export EDITOR=vim
-alias ci=vi
-alias vi=nvim
-alias vim=nvim
+# nvm
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 
-export GOPATH=$HOME/go
-export PATH=$PATH:$HOME/bin:$GOPATH/bin:$HOME/node_modules/.bin:/opt/homebrew/Cellar:$HOME/.dotnet/tools
+export HOMEBREW_NO_AUTO_UPDATE=1
 
-zstyle ':completion:*:*:docker:*' option-stacking yes
-zstyle ':completion:*:*:docker-*:*' option-stacking yes
-type bw >/dev/null 2>&1 && eval "$(bw completion --shell zsh); compdef _bw bw;"
+# Added by Obsidian
+export PATH="$PATH:/Applications/Obsidian.app/Contents/MacOS"
 
-fpath=(~/.zsh/completion $fpath)
-autoload -Uz compinit && compinit -i
-# Recursively traverse directories when TAB-completing files.
-zstyle ':z4h:fzf-complete' recurse-dirs yes
-zstyle ':z4h:fzf-complete' fzf-bindings tab:repeat
-
-GITSTATUS_LOG_LEVEL=DEBUG
+# Google Cloud SDK
+if [ -f '/Users/dconley/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/dconley/google-cloud-sdk/path.zsh.inc'; fi
+if [ -f '/Users/dconley/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/dconley/google-cloud-sdk/completion.zsh.inc'; fi

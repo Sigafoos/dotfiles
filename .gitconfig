@@ -1,6 +1,6 @@
 [user]
 	name = Dan Conley
-	email = dconley@protonmail.com
+	email = dconley@acvauctions.com
 [alias]
 	co = checkout
 	c = commit
@@ -16,3 +16,17 @@
 	insteadOf = https://github.com/
 [pull]
 	rebase = false
+[core]
+	pager = delta
+[interactive]
+	diffFilter = delta --color-only
+[delta]
+	navigate = true
+	line-numbers = true
+[merge]
+	conflictStyle = zdiff3
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
