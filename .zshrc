@@ -133,17 +133,26 @@ _cd-forward() {
   _dirhist_redraw
 }
 _cd-down() {
-  local finder dir
-  if (( $+commands[fd] )); then
-    finder='fd --type d -d 1 --hidden --exclude .git --strip-cwd-prefix'
-  else
-    finder="find . -mindepth 1 -type d -not -path '*/.git/*' -printf '%P\n'"
-  fi
-  dir=$(eval $finder 2>/dev/null | fzf --height=40% --reverse --prompt='cd> ' \
-        --preview 'ls -A --color=always -- {} 2>/dev/null || ls -A -- {}') || return
-  [[ -n $dir ]] || return
-  builtin cd -- "$dir" 2>/dev/null
-  _dirhist_redraw
+  # Pick a subdirectory with fzf. Enter cd's into the highlighted dir; Tab
+  # descends into it and re-lists its children (keep Tabbing to go deeper).
+  local base=$PWD listing out key sel
+  while true; do
+    if (( $+commands[fd] )); then
+      listing=$(cd -- "$base" 2>/dev/null && fd --type d -d 1 --hidden --exclude .git --strip-cwd-prefix)
+    else
+      listing=$(cd -- "$base" 2>/dev/null && find . -mindepth 1 -maxdepth 1 -type d -not -name .git 2>/dev/null | sed 's|^\./||')
+    fi
+    [[ -n $listing ]] || break          # no subdirectories: accept current base
+    out=$(print -r -- "$listing" | fzf --height=40% --reverse --expect=tab \
+          --prompt="${base/#$HOME/~}/" \
+          --preview "ls -A --color=always -- ${(q)base}/{} 2>/dev/null || ls -A -- ${(q)base}/{}") || return
+    key=${out%%$'\n'*}                  # 'tab' if Tab was pressed, else empty (Enter)
+    sel=${out#*$'\n'}
+    [[ -n $sel ]] || return
+    base=${base%/}/${sel%/}             # descend into the selection
+    [[ $key == tab ]] || break          # Enter accepts; Tab keeps descending
+  done
+  builtin cd -- "$base" 2>/dev/null && _dirhist_redraw
 }
 zle -N _cd-up
 zle -N _cd-down
