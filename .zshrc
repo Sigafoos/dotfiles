@@ -79,6 +79,16 @@ zstyle ':completion:*:*:docker-*:*' option-stacking yes
 bindkey '^[[A' history-substring-search-up
 bindkey '^[[B' history-substring-search-down
 
+# fzf key bindings: Ctrl-R (history), Ctrl-T (files), Alt-C (cd). We source
+# ONLY key-bindings.zsh, not fzf's completion — fzf-tab owns Tab completion.
+for _f in /opt/homebrew/opt/fzf/shell/key-bindings.zsh \
+          /usr/local/opt/fzf/shell/key-bindings.zsh \
+          /usr/share/fzf/key-bindings.zsh \
+          /usr/share/doc/fzf/examples/key-bindings.zsh; do
+  [[ -r $_f ]] && { source $_f; break }
+done
+unset _f
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Directory navigation widgets (replaces z4h-cd-up/down/back/forward).
 #   Shift+Up    → cd ..
