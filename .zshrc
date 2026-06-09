@@ -143,26 +143,46 @@ _cd-forward() {
   _dirhist_redraw
 }
 _cd-down() {
-  # Pick a subdirectory with fzf. Enter cd's into the highlighted dir; Tab
-  # descends into it and re-lists its children (keep Tabbing to go deeper).
-  local base=$PWD listing out key sel
+  # Pick a directory with fzf, searching RECURSIVELY so a multi-part query like
+  # "rep ord v2" matches repos/order-service/Orders.Domain/V2. Results are
+  # listed newest-first (by mtime). Enter cd's into the choice; Tab re-roots the
+  # search there so you can keep narrowing deeper.
+  zmodload -F zsh/stat b:zstat 2>/dev/null
+  local base=$PWD out key sel
+  local -i max_depth=5      # how deep each search goes; bounds huge trees like ~
+  if [ $PWD = $HOME ]; then
+	  max_depth=2
+  fi
   while true; do
+    local -a dirs
     if (( $+commands[fd] )); then
-      listing=$(cd -- "$base" 2>/dev/null && fd --type d -d 1 --hidden --exclude .git --strip-cwd-prefix)
+      # fd respects .gitignore (drops node_modules/build noise). --max-depth
+      # keeps recursion from exploding in big non-repo dirs (e.g. ~). Add
+      # --no-ignore to also search .gitignore'd trees.
+      dirs=(${(f)"$(cd -- $base 2>/dev/null && fd --type d --hidden --exclude .git --max-depth $max_depth --strip-cwd-prefix)"})
     else
-      listing=$(cd -- "$base" 2>/dev/null && find . -mindepth 1 -maxdepth 1 -type d -not -name .git 2>/dev/null | sed 's|^\./||')
+      dirs=(${(f)"$(cd -- $base 2>/dev/null && find . -mindepth 1 -maxdepth $max_depth -type d -not -path '*/.git/*' 2>/dev/null | sed 's|^\./||')"})
     fi
-    [[ -n $listing ]] || break          # no subdirectories: accept current base
-    out=$(print -r -- "$listing" | fzf --height=40% --reverse --expect=tab \
-          --prompt="${base/#$HOME/~}/" \
+    (( $#dirs )) || break                  # no subdirectories: accept current base
+    # Newest-first: prefix each path with its mtime, numeric-descending sort,
+    # strip the prefix. Skip for very large trees to keep it snappy.
+    if (( $+builtins[zstat] && $#dirs <= 4000 )); then
+      local -a keyed; local d mt
+      for d in $dirs; do
+        zstat -A mt +mtime -- $base/$d 2>/dev/null && keyed+=($mt$'\t'$d)
+      done
+      (( $#keyed )) && dirs=(${${(On)keyed}#*$'\t'})
+    fi
+    out=$(print -rl -- $dirs | fzf --height=40% --reverse --expect=tab \
+          --scheme=path --tiebreak=index --prompt="${base/#$HOME/~}/" \
           --preview "ls -A --color=always -- ${(q)base}/{} 2>/dev/null || ls -A -- ${(q)base}/{}") || return
-    key=${out%%$'\n'*}                  # 'tab' if Tab was pressed, else empty (Enter)
+    key=${out%%$'\n'*}                     # 'tab' if Tab was pressed, else empty (Enter)
     sel=${out#*$'\n'}
     [[ -n $sel ]] || return
-    base=${base%/}/${sel%/}             # descend into the selection
-    [[ $key == tab ]] || break          # Enter accepts; Tab keeps descending
+    base=${base%/}/${sel%/}                # descend into the selection
+    [[ $key == tab ]] || break             # Enter accepts; Tab re-roots and keeps going
   done
-  builtin cd -- "$base" 2>/dev/null && _dirhist_redraw
+  builtin cd -- $base 2>/dev/null && _dirhist_redraw
 }
 zle -N _cd-up
 zle -N _cd-down
