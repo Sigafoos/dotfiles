@@ -145,15 +145,14 @@ _cd-forward() {
 _cd-down() {
   # Pick a directory with fzf, searching RECURSIVELY so a multi-part query like
   # "rep ord v2" matches repos/order-service/Orders.Domain/V2. Results are
-  # listed newest-first (by mtime). Enter cd's into the choice; Tab re-roots the
-  # search there so you can keep narrowing deeper.
-  zmodload -F zsh/stat b:zstat 2>/dev/null
+  # listed breadth-first (shallowest directories first). Enter cd's into the
+  # choice; Tab re-roots the search there so you can keep narrowing deeper.
   local base=$PWD out key sel
-  local -i max_depth=5      # how deep each search goes; bounds huge trees like ~
-  if [ $PWD = $HOME ]; then
-	  max_depth=2
-  fi
   while true; do
+	  local -i max_depth=5      # how deep each search goes
+	  if [ $PWD = $HOME ] && [ ! $key = tab ]; then
+		  max_depth=2 # ~ is huge, make it tiny
+	  fi
     local -a dirs
     if (( $+commands[fd] )); then
       # fd respects .gitignore (drops node_modules/build noise). --max-depth
@@ -164,15 +163,11 @@ _cd-down() {
       dirs=(${(f)"$(cd -- $base 2>/dev/null && find . -mindepth 1 -maxdepth $max_depth -type d -not -path '*/.git/*' 2>/dev/null | sed 's|^\./||')"})
     fi
     (( $#dirs )) || break                  # no subdirectories: accept current base
-    # Newest-first: prefix each path with its mtime, numeric-descending sort,
-    # strip the prefix. Skip for very large trees to keep it snappy.
-    if (( $+builtins[zstat] && $#dirs <= 4000 )); then
-      local -a keyed; local d mt
-      for d in $dirs; do
-        zstat -A mt +mtime -- $base/$d 2>/dev/null && keyed+=($mt$'\t'$d)
-      done
-      (( $#keyed )) && dirs=(${${(On)keyed}#*$'\t'})
-    fi
+    # Breadth-first: order by path depth so shallower directories come first
+    # (prefix each with its slash count, numeric-ascending sort, strip prefix).
+    local -a keyed; local d
+    for d in $dirs; do keyed+=(${#${d//[^\/]/}}$'\t'$d); done
+    dirs=(${${(on)keyed}#*$'\t'})
     out=$(print -rl -- $dirs | fzf --height=40% --reverse --expect=tab \
           --scheme=path --tiebreak=index --prompt="${base/#$HOME/~}/" \
           --preview "ls -A --color=always -- ${(q)base}/{} 2>/dev/null || ls -A -- ${(q)base}/{}") || return

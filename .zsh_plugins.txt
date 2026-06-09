@@ -20,3 +20,6 @@ zsh-users/zsh-syntax-highlighting
 
 # up/down history search filtered by what's typed (load after syntax-highlighting)
 zsh-users/zsh-history-substring-search
+
+# vim mode
+jeffreytse/zsh-vi-mode
