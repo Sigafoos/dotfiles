@@ -6,7 +6,7 @@ fi
 # Plugins themselves are cloned by antidote on first shell launch, driven by
 # ~/.zsh_plugins.txt and compiled to ~/.zsh_plugins.zsh.
 
-for file in .zshenv .zshrc .zsh_plugins.txt .p10k.zsh .gitconfig .tmux.conf .vimrc; do
+for file in .zshenv .zshrc .zsh_plugins.txt .p10k.zsh .gitconfig .tmux.conf .vimrc .wezterm.lua; do
 	echo "symlinking $file..."
 	rm $HOME/$file > /dev/null 2>&1
 	ln -s $HOME/dotfiles/$file $HOME/$file
@@ -36,7 +36,7 @@ else
 fi
 
 echo "installing vundle..."
-rm -r ~/.vim/bundle/Vundle.vim > /dev/null 2>&1
+rm -rf ~/.vim/bundle/Vundle.vim > /dev/null 2>&1
 git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
 vim +PluginInstall +qall
 
