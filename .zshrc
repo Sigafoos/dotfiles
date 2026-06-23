@@ -37,16 +37,19 @@ if [[ ! -e $ANTIDOTE_DIR/antidote.zsh ]]; then
 fi
 zsh_plugins=${ZDOTDIR:-$HOME}/.zsh_plugins
 if [[ ! ${zsh_plugins}.zsh -nt ${zsh_plugins}.txt ]]; then
+  (( $+functions[_ckpt] )) && _ckpt "zshrc: antidote bundle (regenerating)"
   source $ANTIDOTE_DIR/antidote.zsh
   antidote bundle <${zsh_plugins}.txt >|${zsh_plugins}.zsh
 fi
+(( $+functions[_ckpt] )) && _ckpt "zshrc: sourcing plugin bundle"
 source ${zsh_plugins}.zsh
+(( $+functions[_ckpt] )) && _ckpt "zshrc: plugin bundle sourced"
 
 # Initialize the completion system (after plugin fpaths are registered).
 autoload -Uz compinit && compinit -i
+(( $+functions[_ckpt] )) && _ckpt "zshrc: compinit done"
 
 # Load powerlevel10k prompt configuration.
-(( $+functions[_ckpt] )) && _ckpt "zshrc: antidote+compinit done"
 [[ -r ~/.p10k.zsh ]] && source ~/.p10k.zsh
 (( $+functions[_ckpt] )) && _ckpt "zshrc: p10k loaded"
 

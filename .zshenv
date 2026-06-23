@@ -12,6 +12,8 @@ typeset -gF _shell_start_time=${EPOCHREALTIME:-0}
 # and its LAST line shows exactly which phase it died in.
 typeset -g _ckpt_file=$HOME/.zsh-startup-phase/$$
 _ckpt() {
+  [[ -o interactive ]] || return 0   # only track interactive shells; non-interactive
+                                     # `zsh -c` (scripts, tools, etc.) would just spam.
   [[ -d $HOME/.zsh-startup-phase ]] || mkdir -p $HOME/.zsh-startup-phase 2>/dev/null
   print -r -- "$(strftime '%T.%3.' ${EPOCHREALTIME:-0} 2>/dev/null) $1" >> $_ckpt_file 2>/dev/null
 }
