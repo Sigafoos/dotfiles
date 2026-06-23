@@ -23,6 +23,8 @@
 [delta]
 	navigate = true
 	line-numbers = true
+	dark = true
+	true-color = always
 [merge]
 	conflictStyle = zdiff3
 [filter "lfs"]

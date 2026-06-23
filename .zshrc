@@ -1,12 +1,23 @@
 # Personal Zsh configuration — plain zsh + antidote (migrated off zsh4humans).
 
+(( $+functions[_ckpt] )) && _ckpt "zshrc: top"
+
 # ─────────────────────────────────────────────────────────────────────────────
-# Powerlevel10k instant prompt. Keep near the top; nothing above it should
-# produce console output (otherwise instant prompt will warn).
+# Powerlevel10k instant prompt — DISABLED. It sends a terminal query and waits
+# for the response, which inside tmux intermittently never arrives and stalled
+# new panes for ~5s (see ~/.zsh-startup-phase diagnostics). Startup is now ~0.2s
+# thanks to lazy-loading nvm/pyenv, so instant prompt bought almost nothing.
+# To re-enable: set this to off-removal and restore the source block below.
 # ─────────────────────────────────────────────────────────────────────────────
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
+typeset -g POWERLEVEL9K_INSTANT_PROMPT=off
+# if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+#   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+# fi
+
+# Profile startup so the occasional slow shell can be diagnosed. The logger at
+# the end of this file dumps this profile only when startup is unusually slow.
+zmodload zsh/zprof 2>/dev/null
+(( $+functions[_ckpt] )) && _ckpt "zshrc: start"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Completion fpath additions — must come BEFORE compinit runs.
@@ -35,7 +46,9 @@ source ${zsh_plugins}.zsh
 autoload -Uz compinit && compinit -i
 
 # Load powerlevel10k prompt configuration.
+(( $+functions[_ckpt] )) && _ckpt "zshrc: antidote+compinit done"
 [[ -r ~/.p10k.zsh ]] && source ~/.p10k.zsh
+(( $+functions[_ckpt] )) && _ckpt "zshrc: p10k loaded"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Shell options
@@ -46,6 +59,7 @@ setopt auto_cd             # `foo/` with no command cds into it
 setopt interactive_comments # allow # comments in interactive shells (pasting)
 unsetopt beep              # no terminal bell on errors
 export KEYTIMEOUT=1        # reduce lag when changing vi modes / multi-key binds
+export COLORTERM=truecolor
 
 # History (z4h used to configure this; set it explicitly now).
 HISTFILE=$HOME/.zsh_history
@@ -63,6 +77,7 @@ setopt share_history          # share history across concurrent sessions
 # ─────────────────────────────────────────────────────────────────────────────
 # fzf-tab: let it own the completion menu.
 zstyle ':completion:*' menu no
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}' # case insensitive
 # Use `<tab>` to keep descending into directories without leaving the fzf menu
 # (replaces z4h's `tab:repeat` for fzf-complete / cd-down).
 zstyle ':fzf-tab:*' continuous-trigger 'tab'
@@ -148,11 +163,11 @@ _cd-down() {
   # listed breadth-first (shallowest directories first). Enter cd's into the
   # choice; Tab re-roots the search there so you can keep narrowing deeper.
   local base=$PWD out key sel
+  local -i max_depth=5      # how deep each search goes
+  if [ $PWD = $HOME ]; then # && [ ! $key = tab ]; then
+	  max_depth=2 # ~ is huge, make it tiny
+  fi
   while true; do
-	  local -i max_depth=5      # how deep each search goes
-	  if [ $PWD = $HOME ] && [ ! $key = tab ]; then
-		  max_depth=2 # ~ is huge, make it tiny
-	  fi
     local -a dirs
     if (( $+commands[fd] )); then
       # fd respects .gitignore (drops node_modules/build noise). --max-depth
@@ -215,7 +230,7 @@ path=(~/bin $path)
 export GPG_TTY=$TTY
 export EDITOR=vim
 export GOPATH=$HOME/go
-export PATH=$PATH:$HOME/bin:$GOPATH/bin:$HOME/node_modules/.bin:/opt/homebrew/Cellar:$HOME/.dotnet/tools:/opt/homebrew/bin
+export PATH=$PATH:$HOME/bin:$GOPATH/bin:$HOME/node_modules/.bin:/opt/homebrew/Cellar:$HOME/.dotnet/tools:/opt/homebrew/bin:/usr/local/share/dotnet:/usr/local/bin
 
 # Source additional local files if they exist.
 [[ -r ~/.env.zsh ]] && source ~/.env.zsh
@@ -241,6 +256,7 @@ alias vim=nvim
 # Legacy / machine-specific
 # ─────────────────────────────────────────────────────────────────────────────
 # ha legacy
+(( $+functions[_ckpt] )) && _ckpt "zshrc: sourcing .bashrc.local"
 [[ -f $HOME/.bashrc.local ]] && source $HOME/.bashrc.local
 
 # work with yubikey, if it's set up
@@ -259,10 +275,18 @@ PERL_LOCAL_LIB_ROOT="/Users/dconley/perl5${PERL_LOCAL_LIB_ROOT:+:${PERL_LOCAL_LI
 PERL_MB_OPT="--install_base \"/Users/dconley/perl5\""; export PERL_MB_OPT;
 PERL_MM_OPT="INSTALL_BASE=/Users/dconley/perl5"; export PERL_MM_OPT;
 
-# nvm
+# nvm — lazy-loaded. Sourcing nvm.sh costs ~1s, so defer it until the first
+# time you run nvm/node/npm/npx/corepack (one-time delay on first use).
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+_load_nvm() {
+  unset -f nvm node npm npx corepack 2>/dev/null
+  [[ -s $NVM_DIR/nvm.sh ]] && source $NVM_DIR/nvm.sh
+  [[ -s $NVM_DIR/bash_completion ]] && source $NVM_DIR/bash_completion
+}
+for _c in nvm node npm npx corepack; do
+  eval "$_c() { _load_nvm; $_c \"\$@\"; }"
+done
+unset _c
 
 export HOMEBREW_NO_AUTO_UPDATE=1
 
@@ -272,3 +296,26 @@ export PATH="$PATH:/Applications/Obsidian.app/Contents/MacOS"
 # Google Cloud SDK
 if [ -f '/Users/dconley/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/dconley/google-cloud-sdk/path.zsh.inc'; fi
 if [ -f '/Users/dconley/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/dconley/google-cloud-sdk/completion.zsh.inc'; fi
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Slow-startup logger. If this shell took unusually long to start, dump a zprof
+# profile to ~/.zsh-slow-startup/ so the occasional 5s pane can be diagnosed.
+# Delete that dir anytime; remove this block once the cause is found.
+# ─────────────────────────────────────────────────────────────────────────────
+() {
+  zmodload zsh/datetime 2>/dev/null
+  local -F elapsed=$(( ${EPOCHREALTIME:-0} - ${_shell_start_time:-${EPOCHREALTIME:-0}} ))
+  if (( elapsed > 3 )) && (( $+functions[zprof] )); then
+    local dir=$HOME/.zsh-slow-startup
+    mkdir -p $dir 2>/dev/null
+    {
+      print -r -- "elapsed=${elapsed}s  pid=$$  tty=${TTY:-?}  pwd=$PWD  tmux=${TMUX:+yes}"
+      zprof
+    } >| $dir/$(strftime '%Y%m%d-%H%M%S' ${EPOCHREALTIME%.*}).log 2>/dev/null
+  fi
+  (( $+functions[zprof] )) && zmodload -u zsh/zprof 2>/dev/null
+  # Reached the end cleanly — log the total and remove this shell's checkpoint
+  # trail (so only hung/dead startups leave a file behind in ~/.zsh-startup-phase).
+  (( $+functions[_ckpt] )) && _ckpt "zshrc: complete (${elapsed}s)"
+  [[ -n $_ckpt_file ]] && rm -f $_ckpt_file 2>/dev/null
+}

@@ -3,6 +3,13 @@ syntax on
 set nocompatible              " be iMproved, required
 filetype off                  " required
 
+" Don't start the python3 remote-host provider. The only thing that needs it is
+" deoplete (autostart is disabled below, and pynvim isn't installed), and
+" python3 here is a pyenv shim that takes ~0.7s/spawn — the provider was costing
+" ~2.6s on every file open. Re-enable (and install pynvim + set
+" g:python3_host_prog to a real interpreter) if you ever turn deoplete back on.
+let g:loaded_python3_provider = 0
+
 set nomodeline
 
 " ** pluggins **
