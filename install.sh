@@ -30,7 +30,7 @@ elif [[ $OSTYPE == darwin* ]]; then
 	else
 		echo "found Homebrew"
 	fi
-	brew install tmux ack-grep fd-find neovim
+	brew install tmux ack-grep fd-find neovim fzf
 else
 	echo "can't handle OSTYPE $OSTYPE"
 fi
