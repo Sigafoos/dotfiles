@@ -64,6 +64,13 @@ unsetopt beep              # no terminal bell on errors
 export KEYTIMEOUT=1        # reduce lag when changing vi modes / multi-key binds
 export COLORTERM=truecolor
 
+# Enable vi keybindings explicitly and EARLY. zsh otherwise auto-selects the vi
+# keymap (because $EDITOR=vim) lazily at the first prompt, which re-applies vi
+# defaults and clobbers key bindings set later in this file (e.g. it resets
+# insert-mode ^R to history-incremental-search instead of fzf). Selecting it
+# here means every binding below sticks in both keymaps.
+bindkey -v
+
 # History (z4h used to configure this; set it explicitly now).
 HISTFILE=$HOME/.zsh_history
 HISTSIZE=100000
@@ -93,9 +100,12 @@ zstyle ':completion:*:*:docker-*:*' option-stacking yes
 # zsh-autosuggestions: Right-arrow accepts the whole suggestion (z4h had
 # forward-char 'accept'; forward-char is an accept widget by default).
 
-# history-substring-search: bind Up/Down to filtered history search.
-bindkey '^[[A' history-substring-search-up
-bindkey '^[[B' history-substring-search-down
+# history-substring-search: bind Up/Down to filtered history search, in both
+# vi keymaps (insert + normal) so it behaves the same regardless of mode.
+bindkey -M viins '^[[A' history-substring-search-up
+bindkey -M vicmd '^[[A' history-substring-search-up
+bindkey -M viins '^[[B' history-substring-search-down
+bindkey -M vicmd '^[[B' history-substring-search-down
 
 # fzf key bindings: Ctrl-R (history), Ctrl-T (files), Alt-C (cd). We source
 # ONLY key-bindings.zsh, not fzf's completion — fzf-tab owns Tab completion.
@@ -106,6 +116,10 @@ for _f in /opt/homebrew/opt/fzf/shell/key-bindings.zsh \
   [[ -r $_f ]] && { source $_f; break }
 done
 unset _f
+# Ensure Ctrl-R is fzf history in BOTH vi keymaps (insert-mode ^R otherwise
+# stays zsh's default incremental search).
+bindkey -M viins '^R' fzf-history-widget
+bindkey -M vicmd '^R' fzf-history-widget
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Directory navigation widgets (replaces z4h-cd-up/down/back/forward).
@@ -202,15 +216,35 @@ zle -N _cd-down
 zle -N _cd-back
 zle -N _cd-forward
 
-# Shift+Arrow escape sequences (xterm/iTerm2/WezTerm CSI 1;2 <letter>).
-bindkey '^[[1;2A' _cd-up       # Shift+Up
-bindkey '^[[1;2B' _cd-down     # Shift+Down
-bindkey '^[[1;2D' _cd-back     # Shift+Left
-bindkey '^[[1;2C' _cd-forward  # Shift+Right
+# Shift+Arrow escape sequences (xterm/iTerm2/WezTerm CSI 1;2 <letter>), bound in
+# both vi keymaps so they work in insert AND normal mode.
+for _km in viins vicmd; do
+  bindkey -M $_km '^[[1;2A' _cd-up       # Shift+Up
+  bindkey -M $_km '^[[1;2B' _cd-down     # Shift+Down
+  bindkey -M $_km '^[[1;2D' _cd-back     # Shift+Left
+  bindkey -M $_km '^[[1;2C' _cd-forward  # Shift+Right
+done
+unset _km
 
 # Undo / redo (z4h bound these to Ctrl+/ and Option+/).
 bindkey '^_' undo
 bindkey '^[/' redo
+
+# vi mode resets insert-mode ^R to its default (incremental search) when the
+# line editor initializes — after everything above runs. Re-assert the bindings
+# for standard keys in a zle-line-init hook so they win every time, in both
+# keymaps. (Custom sequences like the Shift-arrows above aren't affected, but
+# re-asserting them here too is cheap and keeps it all in one place.)
+autoload -Uz add-zle-hook-widget
+_reassert_keybinds() {
+  bindkey -M viins '^R' fzf-history-widget
+  bindkey -M vicmd '^R' fzf-history-widget
+  bindkey -M viins '^[[A' history-substring-search-up
+  bindkey -M vicmd '^[[A' history-substring-search-up
+  bindkey -M viins '^[[B' history-substring-search-down
+  bindkey -M vicmd '^[[B' history-substring-search-down
+}
+add-zle-hook-widget zle-line-init _reassert_keybinds
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Autoloaded functions / completions

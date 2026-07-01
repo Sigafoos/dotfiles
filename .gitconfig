@@ -22,6 +22,7 @@
 	diffFilter = delta --color-only
 [delta]
 	navigate = true
+	hunk-header-style = omit
 	line-numbers = true
 	dark = true
 	true-color = always
